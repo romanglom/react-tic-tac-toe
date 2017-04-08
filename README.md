@@ -1,6 +1,6 @@
 # Requirements
 
-<b>npm</b> is necessary to download dependencies
+npm is necessary to download dependencies
 
 # Build
 
@@ -8,4 +8,4 @@
  - npm run build
 
 # Run
-Open <b>index.html</b>
+Open index.html

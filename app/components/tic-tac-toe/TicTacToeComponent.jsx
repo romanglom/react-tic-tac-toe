@@ -2,14 +2,19 @@ import React from 'react';
 import {Row, Col, Button, Glyphicon} from 'react-bootstrap';
 
 import matrixUtils from '../../utils/matrix-utils';
+import iaTicTacToeUtils from '../../utils/ia-tic-tac-toe-utils';
+
 import OptionComponent from './option/OptionComponent';
 import WinnerBackgroundComponent from './winner/WinnerBackgroundComponent';
+import ChooseOpponentModalComponent from './modal/ChooseOpponentModalComponent';
 
 const LABEL_X = "X";
 const LABEL_O = "O";
-const EMPTY = "";
-const MESSAGE_PLAYER_ONE_WINNER = "Player 1 Winner!";
-const MESSAGE_PLAYER_TWO_WINNER = "Player 2 Winner!";
+
+// Messages
+const MESSAGE_PLAYER_ONE_WINNER = "Player 1 is the Winner!";
+const MESSAGE_PLAYER_TWO_WINNER = "Player 2 is the Winner!";
+const MESSAGE_IA_WINNER = "Computer is the Winner!";
 const MESSAGE_DRAW = "DRAW!";
 
 class TicTacToeComponent extends React.Component {
@@ -19,16 +24,20 @@ class TicTacToeComponent extends React.Component {
 
         this.state = {
             currentTurnLabel: LABEL_X,
-            currentMatrix: [[EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]],
-            turnNumber: 0
+            currentMatrix: matrixUtils.getEmptyMatrix(),
+            turnNumber: 0,
+            showStartModal: true
         };
 
-        this.onOptionClicked = this.onOptionClicked.bind(this);
+        this.clickOption = this.clickOption.bind(this);
         this.changeTurn = this.changeTurn.bind(this);
         this.checkWinner = this.checkWinner.bind(this);
+        this.selectIaPosition = this.selectIaPosition.bind(this);
+        this.chooseOpponent = this.chooseOpponent.bind(this);
+        this.restart = this.restart.bind(this);
     }
 
-    onOptionClicked(positionX, positionY) {
+    clickOption(positionX, positionY) {
         let updatedMatrix = this.state.currentMatrix;
         updatedMatrix[positionX][positionY] = this.state.currentTurnLabel;
 
@@ -39,51 +48,82 @@ class TicTacToeComponent extends React.Component {
 
     checkWinner() {
         let lines = matrixUtils.getAllLines(this.state.currentMatrix);
-        let winnerLine = lines.find(line => /(.)\1\1/.test(line));
+        let winnerLine = lines.find(line => {
+            let charactersLine = line.map(element => element.char).join("");
+            return /(.)\1\1/.test(charactersLine);
+        });
 
         if (winnerLine) {
-            let winnerMessage = winnerLine.includes(LABEL_X) ? MESSAGE_PLAYER_ONE_WINNER : MESSAGE_PLAYER_TWO_WINNER;
+            let winnerMessage = winnerLine.includes(LABEL_X) ? MESSAGE_PLAYER_ONE_WINNER : (this.state.iaPlaying ? MESSAGE_IA_WINNER : MESSAGE_PLAYER_TWO_WINNER);
             this.setState({message: winnerMessage});
         } else {
             if (this.state.turnNumber === 9) {
                 this.setState({message: MESSAGE_DRAW});
+            } else {
+                this.changeTurn();
             }
-            this.changeTurn();
         }
     }
 
     changeTurn() {
         let nextTurnLabel = this.state.currentTurnLabel === LABEL_X ? LABEL_O : LABEL_X;
-        this.setState({currentTurnLabel: nextTurnLabel});
+        this.setState({currentTurnLabel: nextTurnLabel}, () => {
+            if (this.state.iaPlaying && this.state.currentTurnLabel === LABEL_O) {
+                this.selectIaPosition();
+            }
+        });
+    }
+
+    selectIaPosition() {
+        let position = iaTicTacToeUtils.getNextPosition(this.state.currentMatrix, LABEL_X, LABEL_O);
+        console.log(position);
+        this.clickOption(position.x, position.y);
+    }
+
+    chooseOpponent(isIaOpponent) {
+        this.setState({
+            showStartModal: false,
+            iaPlaying: isIaOpponent
+        })
+    }
+
+    restart() {
+        this.setState({
+            currentTurnLabel: LABEL_X,
+            currentMatrix: matrixUtils.getEmptyMatrix(),
+            turnNumber: 0,
+            showStartModal: true,
+            message: ""
+        });
     }
 
     render() {
+        let restartButton = <Button onClick={this.restart} className="btn-info action-button"><Glyphicon
+            glyph="refresh"/></Button>;
+
         let winnerBackground = this.state.message ?
-            <WinnerBackgroundComponent message={this.state.message}></WinnerBackgroundComponent> : "";
+            <WinnerBackgroundComponent message={this.state.message}
+                                       restartButton={restartButton}></WinnerBackgroundComponent> : "";
 
         return (
             <Row>
                 <Col md={8} mdOffset={2}>
-                    <OptionComponent onClick={this.onOptionClicked} positionX={0} positionY={0}
-                                     label={this.state.currentTurnLabel}></OptionComponent>
-                    <OptionComponent onClick={this.onOptionClicked} positionX={0} positionY={1}
-                                     label={this.state.currentTurnLabel}></OptionComponent>
-                    <OptionComponent onClick={this.onOptionClicked} positionX={0} positionY={2}
-                                     label={this.state.currentTurnLabel}></OptionComponent>
-                    <OptionComponent onClick={this.onOptionClicked} positionX={1} positionY={0}
-                                     label={this.state.currentTurnLabel}></OptionComponent>
-                    <OptionComponent onClick={this.onOptionClicked} positionX={1} positionY={1}
-                                     label={this.state.currentTurnLabel}></OptionComponent>
-                    <OptionComponent onClick={this.onOptionClicked} positionX={1} positionY={2}
-                                     label={this.state.currentTurnLabel}></OptionComponent>
-                    <OptionComponent onClick={this.onOptionClicked} positionX={2} positionY={0}
-                                     label={this.state.currentTurnLabel}></OptionComponent>
-                    <OptionComponent onClick={this.onOptionClicked} positionX={2} positionY={1}
-                                     label={this.state.currentTurnLabel}></OptionComponent>
-                    <OptionComponent onClick={this.onOptionClicked} positionX={2} positionY={2}
-                                     label={this.state.currentTurnLabel}></OptionComponent>
+                    {
+                        this.state.currentMatrix.map((lines, xIndex) => lines.map((label, yIndex) => {
+                                return (
+                                    <OptionComponent onClick={this.clickOption} positionX={xIndex} positionY={yIndex}
+                                                     label={label}></OptionComponent>
+                                )
+                            })
+                        )
+                    }
+                </Col>
+                <Col md={2}>
+                    {restartButton}
                 </Col>
                 {winnerBackground}
+                <ChooseOpponentModalComponent showModal={this.state.showStartModal}
+                                              chooseOpponent={this.chooseOpponent}></ChooseOpponentModalComponent>
             </Row>
         )
     }

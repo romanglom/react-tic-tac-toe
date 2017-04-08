@@ -13,9 +13,10 @@ class WinnerComponent extends React.Component {
             <div className="winner-background">
                 <Grid>
                     <Row>
-                        <Col md={12} className="text-center">
+                        <Col md={8} mdOffset={2} className="text-center">
                             <Well>
                                 <h1>{this.props.message}</h1>
+                                {this.props.restartButton}
                             </Well>
                         </Col>
                     </Row>
