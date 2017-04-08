@@ -54,7 +54,7 @@ class TicTacToeComponent extends React.Component {
         });
 
         if (winnerLine) {
-            let winnerMessage = winnerLine.includes(LABEL_X) ? MESSAGE_PLAYER_ONE_WINNER : (this.state.iaPlaying ? MESSAGE_IA_WINNER : MESSAGE_PLAYER_TWO_WINNER);
+            let winnerMessage = winnerLine[0].char === LABEL_X ? MESSAGE_PLAYER_ONE_WINNER : (this.state.iaPlaying ? MESSAGE_IA_WINNER : MESSAGE_PLAYER_TWO_WINNER);
             this.setState({message: winnerMessage});
         } else {
             if (this.state.turnNumber === 9) {
