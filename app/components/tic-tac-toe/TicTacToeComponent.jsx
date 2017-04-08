@@ -76,7 +76,6 @@ class TicTacToeComponent extends React.Component {
 
     selectIaPosition() {
         let position = iaTicTacToeUtils.getNextPosition(this.state.currentMatrix, LABEL_X, LABEL_O);
-        console.log(position);
         this.clickOption(position.x, position.y);
     }
 
