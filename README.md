@@ -1,3 +1,7 @@
+# Live Demo
+
+https://romanglom.github.io/react-tic-tac-toe/
+
 # Requirements
 
 npm is necessary to download dependencies
